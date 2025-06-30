@@ -1,36 +1,30 @@
-#include <SoftwareSerial.h>
 #include <SoftwareServo.h>
+#include <SoftwareSerial.h>
 
-//SoftwareSerial rfSerial(3, 4);  // RX, TX
-SoftwareSerial bluetoothSerial(2,5);  // RX, TX
+//at tiny pins ///////////////////////////////
+#define servopin PB0
+#define RxD PB2
+#define TxD PB1
+#define tip120 PB3
+#define led PB4
+//////////////////////////////////////////////
 
+SoftwareSerial Serial(RxD, TxD);
 SoftwareServo servo;
 
-int servoPin = 4;  // Pin analógico para controlar el servo
-int led1Pin = 0;   // Pin digital para LED 1
-int led2Pin = 1;   // Pin digital para LED 2
-int transistorPin = 3;  // Pin digital para el control del transistor
-
-int gas = 0;
 unsigned long servoRefresh;
 
 void setup() {
-  //rfSerial.begin(9600);
-  bluetoothSerial.begin(9600);
+  Serial.begin(19200);
+  servo.attach(servopin);
+  pinMode(led, OUTPUT);
+  pinMode(tip120, OUTPUT);
+  pinMode(servopin, OUTPUT);
 
-  servo.attach(servoPin);
-  
-  pinMode(led1Pin, OUTPUT);
-  pinMode(led2Pin, OUTPUT);
-  pinMode(transistorPin, OUTPUT);
-  pinMode(servoPin, OUTPUT);
-  
-  delay(100);
-  servo.write(90);
+  digitalWrite(led, HIGH);
 }
 
-void refreshServo()
-{
+void refreshServo() {
   //servo refresh every 50ms
   if (millis() - servoRefresh > 50) {
     servoRefresh = millis();
@@ -39,64 +33,33 @@ void refreshServo()
 }
 
 void loop() {
+  char rc;
 
-  //Bluetooth RC Car Controller Android App
-  if (bluetoothSerial.available()) {
-
-    char command = bluetoothSerial.read();
-    bluetoothSerial.write(command);
-
-    //forward
-    if (command == 'F' || command == 'G' || command == 'I') { analogWrite(transistorPin, gas); }
-
-    //servo direction
-    if (command == 'F') { servo.write(90); }
-    if (command == 'L') { servo.write(40); }
-    if (command == 'R') { servo.write(140); }
-        
-    //lights
-    if (command == 'W') { digitalWrite(led1Pin, HIGH); }
-    if (command == 'w') { digitalWrite(led1Pin, LOW); }
-    if (command == 'U') { digitalWrite(led2Pin, HIGH); }
-    if (command == 'u') { digitalWrite(led2Pin, LOW); }
-
-    //gas
-    if (command == '0' || command == 'S') { gas = 0; }
-    if (command == '1') { gas = 24; }
-    if (command == '2') { gas = 48; }
-    if (command == '3') { gas = 72; }
-    if (command == '4') { gas = 96; }
-    if (command == '5') { gas = 120; }
-    if (command == '6') { gas = 144; }
-    if (command == '7') { gas = 168; }
-    if (command == '8') { gas = 192; }
-    if (command == '9') { gas = 216; }
-    if (command == 'q') { gas = 255; }
-    
-  }
-/*
-  if (rfSerial.available()) {
-    char command = rfSerial.read();
-    
-    // Control del servo
-    if (command == 'S') {
-      int angle = rfSerial.parseInt();
-      servo.write(angle);
+  while (Serial.available() > 0) {
+    rc = Serial.read();
+    if (rc == 'W') digitalWrite(led, HIGH);   //lights on
+    if (rc == 'w') digitalWrite(led, LOW);    //lights off
+    if (rc == 'F' || rc == 'G' || rc == 'I')  //forward
+    {
+      digitalWrite(tip120, HIGH);  //gas
     }
-    
-    // Control de los LEDs
-    else if (command == 'L') {
-      int ledState = rfSerial.parseInt();
-      digitalWrite(led1Pin, ledState & 0x01);
-      digitalWrite(led2Pin, (ledState >> 1) & 0x01);
+    if (rc == 'F')  //forward
+    {
+      servo.write(90);
     }
-    
-    // Control del transistor
-    else if (command == 'T') {
-      int transistorState = rfSerial.parseInt();
-      digitalWrite(transistorPin, transistorState);
+    if (rc == 'S')  //stop
+    {
+      digitalWrite(tip120, LOW);  //stop
+    }
+    if (rc == 'L' || rc == 'G')  //left
+    {
+      servo.write(140);
+    }
+    if (rc == 'R' || rc == 'I')  //right
+    {
+      servo.write(40);
     }
   }
-  */
+
   refreshServo();
 }
