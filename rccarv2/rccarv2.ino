@@ -8,6 +8,9 @@
 #define transistorPin PB0  // PWM
 #define led1Pin PB4        // A2
 #define led2Pin PB5
+
+#define NPN
+//#define PNP
 //////////////////////////////////////////////
 
 SoftwareSerial bluetoothSerial(RxD, TxD);  // RX, TX
@@ -27,6 +30,7 @@ void setup() {
 
   delay(100);
   servo.write(90);
+  stopGas();
 }
 
 void refreshServo() {
@@ -35,6 +39,22 @@ void refreshServo() {
     servoRefresh = millis();
     SoftwareServo::refresh();
   }
+}
+
+void throttleGas() {
+#ifdef NPN
+  digitalWrite(transistorPin, LOW);
+#else
+  digitalWrite(transistorPin, HIGH);
+#endif
+}
+
+void stopGas() {
+#ifdef NPN
+  digitalWrite(transistorPin, HIGH);
+#else
+  digitalWrite(transistorPin, LOW);
+#endif
 }
 
 void loop() {
@@ -47,7 +67,7 @@ void loop() {
 
     // forward
     if (command == 'F' || command == 'G' || command == 'I') {
-      analogWrite(transistorPin, 255 - gas);
+      throttleGas();
     }
 
     // servo direction
@@ -78,6 +98,7 @@ void loop() {
     // gas
     if (command == '0' || command == 'S') {
       gas = 0;
+      stopGas();
     }
     if (command == '1') {
       gas = 24;
