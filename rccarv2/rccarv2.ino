@@ -22,6 +22,7 @@ void setup() {
   pinMode(servopin, OUTPUT);
 
   digitalWrite(led, HIGH);
+  digitalWrite(tip120, HIGH);
 }
 
 void refreshServo() {
@@ -41,7 +42,7 @@ void loop() {
     if (rc == 'w') digitalWrite(led, LOW);    //lights off
     if (rc == 'F' || rc == 'G' || rc == 'I')  //forward
     {
-      digitalWrite(tip120, HIGH);  //gas
+      digitalWrite(tip120, LOW);  //gas
     }
     if (rc == 'F')  //forward
     {
@@ -49,7 +50,7 @@ void loop() {
     }
     if (rc == 'S')  //stop
     {
-      digitalWrite(tip120, LOW);  //stop
+      digitalWrite(tip120, HIGH);  //stop
     }
     if (rc == 'L' || rc == 'G')  //left
     {
