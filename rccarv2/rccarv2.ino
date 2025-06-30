@@ -1,32 +1,36 @@
-#include <SoftwareServo.h>
 #include <SoftwareSerial.h>
+#include <SoftwareServo.h>
 
-//at tiny pins ///////////////////////////////
-#define servopin PB0
-#define RxD PB2
-#define TxD PB1
-#define tip120 PB3
-#define led PB4
+// at tiny pins ///////////////////////////////
+#define servoPin PB3       // A3
+#define RxD PB2            // A1
+#define TxD PB1            // PWM
+#define transistorPin PB0  // PWM
+#define led1Pin PB4        // A2
+#define led2Pin PB5
 //////////////////////////////////////////////
 
-SoftwareSerial Serial(RxD, TxD);
+SoftwareSerial bluetoothSerial(RxD, TxD);  // RX, TX
 SoftwareServo servo;
-
+int gas = 0;
 unsigned long servoRefresh;
 
 void setup() {
-  Serial.begin(19200);
-  servo.attach(servopin);
-  pinMode(led, OUTPUT);
-  pinMode(tip120, OUTPUT);
-  pinMode(servopin, OUTPUT);
+  bluetoothSerial.begin(19200);
 
-  digitalWrite(led, HIGH);
-  digitalWrite(tip120, HIGH);
+  servo.attach(servoPin);
+
+  pinMode(led1Pin, OUTPUT);
+  pinMode(led2Pin, OUTPUT);
+  pinMode(transistorPin, OUTPUT);
+  pinMode(servoPin, OUTPUT);
+
+  delay(100);
+  servo.write(90);
 }
 
 void refreshServo() {
-  //servo refresh every 50ms
+  // servo refresh every 50ms
   if (millis() - servoRefresh > 50) {
     servoRefresh = millis();
     SoftwareServo::refresh();
@@ -34,31 +38,76 @@ void refreshServo() {
 }
 
 void loop() {
-  char rc;
 
-  while (Serial.available() > 0) {
-    rc = Serial.read();
-    if (rc == 'W') digitalWrite(led, HIGH);   //lights on
-    if (rc == 'w') digitalWrite(led, LOW);    //lights off
-    if (rc == 'F' || rc == 'G' || rc == 'I')  //forward
-    {
-      digitalWrite(tip120, LOW);  //gas
+  // Bluetooth RC Car Controller Android App
+  if (bluetoothSerial.available()) {
+
+    char command = bluetoothSerial.read();
+    bluetoothSerial.write(command);
+
+    // forward
+    if (command == 'F' || command == 'G' || command == 'I') {
+      analogWrite(transistorPin, 255 - gas);
     }
-    if (rc == 'F')  //forward
-    {
+
+    // servo direction
+    if (command == 'F') {
       servo.write(90);
     }
-    if (rc == 'S')  //stop
-    {
-      digitalWrite(tip120, HIGH);  //stop
+    if (command == 'L') {
+      servo.write(40);
     }
-    if (rc == 'L' || rc == 'G')  //left
-    {
+    if (command == 'R') {
       servo.write(140);
     }
-    if (rc == 'R' || rc == 'I')  //right
-    {
-      servo.write(40);
+
+    // lights
+    if (command == 'W') {
+      digitalWrite(led1Pin, HIGH);
+    }
+    if (command == 'w') {
+      digitalWrite(led1Pin, LOW);
+    }
+    if (command == 'U') {
+      digitalWrite(led2Pin, HIGH);
+    }
+    if (command == 'u') {
+      digitalWrite(led2Pin, LOW);
+    }
+
+    // gas
+    if (command == '0' || command == 'S') {
+      gas = 0;
+    }
+    if (command == '1') {
+      gas = 24;
+    }
+    if (command == '2') {
+      gas = 48;
+    }
+    if (command == '3') {
+      gas = 72;
+    }
+    if (command == '4') {
+      gas = 96;
+    }
+    if (command == '5') {
+      gas = 120;
+    }
+    if (command == '6') {
+      gas = 144;
+    }
+    if (command == '7') {
+      gas = 168;
+    }
+    if (command == '8') {
+      gas = 192;
+    }
+    if (command == '9') {
+      gas = 216;
+    }
+    if (command == 'q') {
+      gas = 255;
     }
   }
 
