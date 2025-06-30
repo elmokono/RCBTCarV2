@@ -16,3 +16,4 @@
 
 # AtTiny85 Pinout for RC Car
 ![AtTiny85 Pinout](attiny85-pinout.jpg "AtTiny85 Pinout")
+![AtTiny85 Pinout](transistor.png "AtTiny85 Pinout")
