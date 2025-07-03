@@ -74,10 +74,10 @@ void loop() {
     if (command == 'F') {
       servo.write(90);
     }
-    if (command == 'L') {
+    if (command == 'R') {
       servo.write(40);
     }
-    if (command == 'R') {
+    if (command == 'L') {
       servo.write(140);
     }
 
